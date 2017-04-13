@@ -26,14 +26,7 @@
         <aloha.options>-server -Djava.net.preferIPv4Stack=true -Djgroups.tcp.address=SITE_LOCAL -Dserver.port=5000</aloha.options>
         <aloha.cli></aloha.cli>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
-
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
