@@ -1,0 +1,43 @@
+---
+infinispan:
+  cluster:
+    name: Kamehameha
+    statistics.enabled: true
+    jgroups.config:
+
+  hotrod:
+    # Infinispan default is 10,000
+    topologyLockTimeout: 30000 # ms
+    topologyReplTimeout: 30000 # ms
+
+  cache:
+    primary:
+      name: main
+      mode: DIST_SYNC
+      stateTransferChunkSize: 128
+      lock:
+        timeout: 30 # Lock acquisition timeout in seconds
+        concurrency: 1024
+      numOwners: 3 # Amount of machines in the cluster storing the key
+
+    secondary:
+      name: session
+      mode: DIST_SYNC
+      stateTransferChunkSize: 128
+      lock:
+        timeout: 30 # Lock acquisition timeout in seconds
+        concurrency: 1024
+      numOwners: 3 # Amount of machines in the cluster storing the key
+
+memcached:
+  host: 0.0.0.0
+  idleTime: 2000
+  verbose: false
+  port:
+    primary : 11211
+    secondary: 11212
+
+server.port: 8080
+logging.level.root: INFO
+management.security.enabled: false
+endpoints.shutdown.enabled: true
