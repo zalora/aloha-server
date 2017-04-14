@@ -21,13 +21,12 @@
         <java.version>1.8</java.version>
         <infinispan.version>9.0.0.Final</infinispan.version>
         <docker.image.prefix>zalora</docker.image.prefix>
-        <aloha.xmx>1G</aloha.xmx>
-        <aloha.xms>1G</aloha.xms>
-        <aloha.options>-server -Djava.net.preferIPv4Stack=true -Djgroups.tcp.address=SITE_LOCAL -Dserver.port=5000</aloha.options>
-        <aloha.cli></aloha.cli>
+        <aloha.xmx>3G</aloha.xmx>
+        <aloha.xms>3G</aloha.xms>
     </properties>
-    
+
     <dependencies>
+        <!-- Spring-Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -55,6 +54,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- Infinispan -->
+        <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
             <version>${infinispan.version}</version>
@@ -62,14 +67,25 @@
 
         <dependency>
             <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-cdi-embedded</artifactId>
+            <artifactId>infinispan-embedded</artifactId>
             <version>${infinispan.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-server-hotrod</artifactId>
-            <version>9.0.0.Final</version>
+            <version>${infinispan.version}</version>
+        </dependency>
+
+        <!-- Other -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
         </dependency>
 
         <dependency>
@@ -99,6 +115,11 @@
                 <configuration>
                     <imageName>${project.artifactId}</imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>
+                    <forceTags>true</forceTags>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                        <imageTag>latest</imageTag>
+                    </imageTags>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
@@ -107,37 +128,6 @@
                         </resource>
                     </resources>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
-
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <exec executable="rm">
-                                    <arg line="-f target/Procfile" />
-                                </exec>
-
-                                <exec executable="echo" output="target/Procfile">
-                                    <arg line="web: java -Xmx${aloha.xmx} -Xms${aloha.xms} ${aloha.options} ${aloha.cli} -jar ${project.artifactId}-${project.version}.jar"/>
-                                </exec>
-
-                                <zip destfile="target/${project.artifactId}-${project.version}.zip">
-                                    <fileset file="target/Procfile"/>
-                                    <fileset file="target/${project.artifactId}-${project.version}.jar" />
-                                </zip>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>

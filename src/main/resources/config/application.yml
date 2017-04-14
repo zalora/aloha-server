@@ -1,4 +1,3 @@
----
 infinispan:
   cluster:
     name: Kamehameha
@@ -13,7 +12,7 @@ infinispan:
   cache:
     primary:
       name: main
-      mode: DIST_SYNC
+      mode: REPL_ASYNC
       stateTransferChunkSize: 128
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
@@ -22,22 +21,27 @@ infinispan:
 
     secondary:
       name: session
-      mode: DIST_SYNC
+      mode: REPL_SYNC
       stateTransferChunkSize: 128
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
         concurrency: 1024
       numOwners: 3 # Amount of machines in the cluster storing the key
 
-memcached:
-  host: 0.0.0.0
-  idleTime: 2000
-  verbose: false
-  port:
-    primary : 11211
-    secondary: 11212
+jgroups:
+  jdbc:
+    connection_url:
+    connection_username: root
+    connection_password:
 
 server.port: 8080
 logging.level.root: INFO
 management.security.enabled: false
 endpoints.shutdown.enabled: true
+
+---
+spring.profiles: jdbc
+
+infinispan:
+  cluster:
+    jgroups.config: jgroups-jdbc.xml

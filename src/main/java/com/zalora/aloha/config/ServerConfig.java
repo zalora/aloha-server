@@ -94,13 +94,23 @@ public class ServerConfig {
     @Value("${infinispan.hotrod.topologyReplTimeout}")
     private long topologyReplTimeout;
 
+    // JGroups configuration
+    @Value("${jgroups.jdbc.connection_url}")
+    private String jgroupsConnectionUrl;
+
+    @Value("${jgroups.jdbc.connection_username}")
+    private String jgroupsUsername;
+
+    @Value("${jgroups.jdbc.connection_password}")
+    private String jgroupsPassword;
+
     @PostConstruct
     public void init() {
         GlobalConfigurationBuilder gcb = new GlobalConfigurationBuilder();
         gcb.transport()
-                .defaultTransport()
-                .clusterName(clusterName)
-                .globalJmxStatistics().enabled(globalStatisticsEnabled);
+            .defaultTransport()
+            .clusterName(clusterName)
+            .globalJmxStatistics().enabled(globalStatisticsEnabled);
 
         gcb.shutdown().hookBehavior(ShutdownHookBehavior.REGISTER);
 
@@ -108,11 +118,13 @@ public class ServerConfig {
             gcb.transport().addProperty("configurationFile", jgroupsConfig);
         }
 
-        globalConfiguration = gcb.build();
-
         configurePrimaryCache();
         configureSecondaryCache();
+
         configureHotRodServer();
+        configureJgroups();
+
+        globalConfiguration = gcb.build();
     }
 
     private void configurePrimaryCache() {
@@ -159,4 +171,9 @@ public class ServerConfig {
         hotRodServerConfiguration = builder.build();
     }
 
+    private void configureJgroups() {
+        System.setProperty("jgroups.jdbc.connection_url", jgroupsConnectionUrl);
+        System.setProperty("jgroups.jdbc.connection_username", jgroupsUsername);
+        System.setProperty("jgroups.jdbc.connection_password", jgroupsPassword);
+    }
 }
