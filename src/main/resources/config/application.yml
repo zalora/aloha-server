@@ -3,6 +3,7 @@ infinispan:
     name: Kamehameha
     statistics.enabled: true
     jgroups.config:
+    network.address:
 
   hotrod:
     # Infinispan default is 10,000
@@ -29,6 +30,7 @@ infinispan:
       numOwners: 3 # Amount of machines in the cluster storing the key
 
 jgroups:
+  aws: false
   jdbc:
     connection_url:
     connection_username: root

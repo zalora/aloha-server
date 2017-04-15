@@ -104,6 +104,12 @@ public class ServerConfig {
     @Value("${jgroups.jdbc.connection_password}")
     private String jgroupsPassword;
 
+    @Value("${jgroups.aws}")
+    private boolean isAws;
+
+    @Value("${infinispan.cluster.network.address}")
+    private String networkAddress;
+
     @PostConstruct
     public void init() {
         GlobalConfigurationBuilder gcb = new GlobalConfigurationBuilder();
@@ -167,6 +173,13 @@ public class ServerConfig {
             .authentication().disable()
             .topologyLockTimeout(topologyLockTimeout)
             .topologyReplTimeout(topologyReplTimeout);
+
+        if (isAws) {
+            log.info("Running on AWS: {}", isAws);
+            log.info("Hot Rod Network Address: {}", networkAddress);
+
+            builder.host(networkAddress);
+        }
 
         hotRodServerConfiguration = builder.build();
     }
