@@ -104,17 +104,13 @@ public class ServerConfig {
     @Value("${jgroups.jdbc.connection_password}")
     private String jgroupsPassword;
 
-    @Value("${jgroups.aws}")
-    private boolean isAws;
-
     @Value("${infinispan.cluster.network.address}")
     private String networkAddress;
 
     @PostConstruct
     public void init() {
         GlobalConfigurationBuilder gcb = new GlobalConfigurationBuilder();
-        gcb.transport()
-            .defaultTransport()
+        gcb.transport().defaultTransport()
             .clusterName(clusterName)
             .globalJmxStatistics().enabled(globalStatisticsEnabled);
 
@@ -139,10 +135,10 @@ public class ServerConfig {
         primaryCacheConfigurationBuilder
             .clustering().cacheMode(primaryCacheMode)
             .stateTransfer().chunkSize(primaryStateTransferChunkSize)
+            .jmxStatistics().enable()
             .locking()
                 .lockAcquisitionTimeout(primaryCacheLockTimeout, TimeUnit.SECONDS)
-                .concurrencyLevel(primaryCacheLockConcurrency)
-                .jmxStatistics().enable();
+                .concurrencyLevel(primaryCacheLockConcurrency);
 
         if (primaryCacheMode.friendlyCacheModeString().equals(CACHE_MODE_DISTRIBUTED)) {
             primaryCacheConfigurationBuilder.clustering().hash().numOwners(primaryCacheNumOwners);
@@ -155,10 +151,10 @@ public class ServerConfig {
         ConfigurationBuilder secondaryCacheConfigurationBuilder = new ConfigurationBuilder();
         secondaryCacheConfigurationBuilder
             .clustering().cacheMode(secondaryCacheMode)
+            .jmxStatistics().enable()
             .locking()
                 .lockAcquisitionTimeout(secondaryCacheLockTimeout, TimeUnit.SECONDS)
-                .concurrencyLevel(secondaryCacheLockConcurrency)
-            .jmxStatistics().enable();
+                .concurrencyLevel(secondaryCacheLockConcurrency);
 
         if (secondaryCacheMode.friendlyCacheModeString().equals(CACHE_MODE_DISTRIBUTED)) {
             secondaryCacheConfigurationBuilder.clustering().hash().numOwners(secondaryCacheNumOwners);
@@ -174,11 +170,9 @@ public class ServerConfig {
             .topologyLockTimeout(topologyLockTimeout)
             .topologyReplTimeout(topologyReplTimeout);
 
-        if (isAws) {
-            log.info("Running on AWS: {}", isAws);
-            log.info("Hot Rod Network Address: {}", networkAddress);
-
+        if (!networkAddress.equals("")) {
             builder.host(networkAddress);
+            log.info("Hot Rod Network Address: {}", networkAddress);
         }
 
         hotRodServerConfiguration = builder.build();

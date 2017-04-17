@@ -1,6 +1,6 @@
-# aloha-server
+# Aloha-Server
 
-## Why do we need the aloha-server?
+## Why do we need the Aloha-Server?
 
 Due to problems running (scaling) [Aloha](https://github.com/zalora/aloha "Aloha") in our
 production environment, we split the app in a server part, which is pretty much the vanilla
@@ -21,13 +21,14 @@ application.yml can be overridden, but the following are important for daily use
 - `SPRING_PROFILES_ACTIVE=jdbc` to activate jgroups JDBC
     - `jgroups.jdbc.connection_url` to set the connection string, e.g. `jdbc:mysql://rds.example.com/dbname`
     - `jgroups.jdbc.connection_username` to set the database username
-    - `jgroups.jdbc.connection_password` to set the database password    
+    - `jgroups.jdbc.connection_password` to set the database password
+- `infinispan.cluster.network.address` to set the Hot Rot listen address
 - `infinispan.cluster.name` to change the name of the cluster, which comes in handy when you have more than one.
 
 ### Ports
 
 The server exposes the caches via HotRod, which is listening on port `11222`. It's also running spring actuator 
-and jolokia listening on the standard port `8080`.
+and jolokia listening on the standard port `8080`. JGroups needs `7800` for node coordination.
 
 ### Loadbalancer
 
