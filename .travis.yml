@@ -1,0 +1,24 @@
+language: java
+sudo: false
+cache:
+  directories:
+  - "$HOME/.m2"
+
+jdk:
+  - oraclejdk8
+
+os:
+  - linux
+
+before_deploy:
+  - rvm 1.9.3 do gem install octokit -v 4.3.0
+  - export DEPLOY_JAR=$(ls target/aloha-server-*.jar)
+
+deploy:
+  provider: releases
+  api_key:
+    secure: zxkKD1+JYyGj+s5Q7upL/IReEKwhB01digwiOETwRyOOlcLIxpa3800fuXK1Vw5twsH//s1SI1QcBSMdbHeoHjPH5suEtvnrCSIGVdl96Wrv1n+Z6r98tvHqhF3OZLTf3D4P04V1am/ytut1UFhMqYsHCxdgA91Gmz/VS5ryikkmtThqybehd4bIWbhqmhjQVgCgGsal/pwQqCCEvWyxyRp5VFw1gjKVOynVj0ctWSI8jBPH657QR+SAe5yt3qqP5cvkmoOkEXTbyQbRZl2X8ZWs5HYdP90CzVlhwemmfe2ZDDsdFTpN3w0aay2cW5ESHHGJBwnAsQYtVW+W4knx5FVX2Ou+i+Q7PP7emMGt0+wM9ocIkLDAqHgk6x5Uf/lkxwf0mmAFR7Niiafxx944RQiiBnLQ/cEaFpuDsPdaira6gJlv39HblXUqmhfE3KNl3jQ0S2Vd+RkjH/04ZcjP0TPzkfebUJYwGgDNpiB9RRld0XitVUC6JUoNYrQfS4/MYhDNH6fyaUjcXkf+1fCK30OsplRu9zKMC344ST97/VM3DgK+emAHm39TIJXs2LH12jtRqWYzZrCYJrTs5VeCrOEL1RrG3A4JrMEBRXZZAgIM3ExF3djZ4ayx1HWsHaRk1LrOSBBtQwi3wALwbeW5vJOAOT2x7thSqmBSLbNWDB4=
+  file: "${DEPLOY_JAR}"
+  on:
+    repo: zalora/aloha-server
+    tags: true
