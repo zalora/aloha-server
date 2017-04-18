@@ -22,6 +22,7 @@ application.yml can be overridden, but the following are important for daily use
     - `jgroups.jdbc.connection_url` to set the connection string, e.g. `jdbc:mysql://rds.example.com/dbname`
     - `jgroups.jdbc.connection_username` to set the database username
     - `jgroups.jdbc.connection_password` to set the database password
+- `AWS=true` to make the docker start script assign the network interface IP address instead of `127.0.0.1`
 - `infinispan.cluster.network.address` to set the Hot Rot listen address
 - `infinispan.cluster.name` to change the name of the cluster, which comes in handy when you have more than one.
 
@@ -33,4 +34,4 @@ and jolokia listening on the standard port `8080`. JGroups needs `7800` for node
 ### Loadbalancer
 
 This setup doesn't need a load balancer, as the client is smart enough to know which server has which key. The
-client however needs the IP of at least one server to start, but this should be easy to find out via the AWS API.
+client however needs the IP of at least one server to start, but this should be easy to find out via the AWS API or Route53.
