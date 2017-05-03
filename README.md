@@ -18,10 +18,19 @@ which might be more interesting for you and is also properly documented ;-)
 The docker container is configured by environment variables. In general all variables in the
 application.yml can be overridden, but the following are important for daily use:
 
+Choose from either JDBC based or AWS API discovery:
+
 - `SPRING_PROFILES_ACTIVE=jdbc` to activate jgroups JDBC
     - `jgroups.jdbc.connection_url` to set the connection string, e.g. `jdbc:mysql://rds.example.com/dbname`
     - `jgroups.jdbc.connection_username` to set the database username
     - `jgroups.jdbc.connection_password` to set the database password
+
+- `SPRING_PROFILES_ACTIVE=aws_ping` to activate jgroups AWS Ping
+    - `jgroups.aws_ping.tags` ec2 instance tags
+    - `jgroups.aws_ping.filters` AWS API filters
+    - `jgroups.aws_ping.access_key` AWS Access Key
+    - `jgroups.aws_ping.secret_key` AWS Secret Key
+
 - `AWS=true` to make the docker start script assign the network interface IP address instead of `127.0.0.1`
 - `infinispan.cluster.network.address` to set the Hot Rot listen address
 - `infinispan.cluster.name` to change the name of the cluster, which comes in handy when you have more than one.

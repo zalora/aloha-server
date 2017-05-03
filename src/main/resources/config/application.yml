@@ -35,8 +35,13 @@ jgroups:
     connection_url:
     connection_username: root
     connection_password:
+  aws_ping:
+    tags:
+    filters:
+    access_key:
+    secret_key:
 
-server.port: 8080
+server.port: 6666
 logging.level.root: INFO
 management.security.enabled: false
 endpoints.shutdown.enabled: true
@@ -47,3 +52,10 @@ spring.profiles: jdbc
 infinispan:
   cluster:
     jgroups.config: jgroups-jdbc.xml
+
+---
+spring.profiles: aws_ping
+
+infinispan:
+  cluster:
+    jgroups.config: jgroups-aws.xml
