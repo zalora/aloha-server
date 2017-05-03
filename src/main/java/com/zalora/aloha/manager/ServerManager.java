@@ -4,6 +4,7 @@ import com.zalora.aloha.config.ServerConfig;
 import javax.annotation.PostConstruct;
 
 import com.zalora.aloha.memcached.MemcachedItem;
+import com.zalora.aloha.models.CacheItem;
 import lombok.Getter;
 import org.infinispan.Cache;
 import org.infinispan.manager.DefaultCacheManager;
@@ -50,6 +51,14 @@ public class ServerManager {
             serverConfig.getSecondaryCacheConfiguration()
         );
 
+        // Configure read-through cache
+        if (serverConfig.isReadthroughEnabled()) {
+            embeddedCacheManager.defineConfiguration(
+                serverConfig.getReadthroughCacheName(),
+                serverConfig.getReadthroughCacheConfiguration()
+            );
+        }
+
         // Start HotRod Server
         HotRodServer server = new HotRodServer();
         server.start(serverConfig.getHotRodServerConfiguration(), embeddedCacheManager);
@@ -61,6 +70,10 @@ public class ServerManager {
 
     public Cache<String, MemcachedItem> getSecondaryCache() {
         return embeddedCacheManager.getCache(serverConfig.getSecondaryCacheName());
+    }
+
+    public Cache<String, CacheItem> getReadthroughCache() {
+        return embeddedCacheManager.getCache(serverConfig.getReadthroughCacheName());
     }
 
 }

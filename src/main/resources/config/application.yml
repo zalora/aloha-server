@@ -36,7 +36,7 @@ infinispan:
       enabled: false
       preload: false
       preloadPageSize: 5000
-      entityClass: com.zalora.aloha.models.entities.Product
+      entityClass: com.zalora.aloha.models.CacheItem
       persistenceUnitName: org.infinispan.persistence.jpa
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
@@ -48,11 +48,26 @@ jgroups:
     connection_url:
     connection_username: root
     connection_password:
+
   aws_ping:
     tags:
     filters:
     access_key:
     secret_key:
+
+spring:
+  jpa:
+    show-sql: false
+    hbm2ddl-auto: none
+    properties.hibernate.dialect:
+
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name:
+    testWhileIdle: false
+    validationQuery:
 
 server.port: 8080
 logging.level.root: INFO

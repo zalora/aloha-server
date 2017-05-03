@@ -4,15 +4,17 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.tools.Server;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.configuration.global.ShutdownHookBehavior;
+import org.infinispan.persistence.jpa.configuration.JpaStoreConfigurationBuilder;
 import org.infinispan.server.hotrod.configuration.HotRodServerConfiguration;
 import org.infinispan.server.hotrod.configuration.HotRodServerConfigurationBuilder;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,6 +34,9 @@ public class ServerConfig {
 
     @Getter
     private Configuration secondaryCacheConfiguration;
+
+    @Getter
+    private Configuration readthroughCacheConfiguration;
 
     @Getter
     private HotRodServerConfiguration hotRodServerConfiguration;
@@ -107,6 +112,7 @@ public class ServerConfig {
     @Value("${infinispan.cache.readthrough.lock.concurrency}")
     private int readthroughCacheLockConcurrency;
 
+    @Getter
     @Value("${infinispan.cache.readthrough.enabled}")
     private boolean readthroughEnabled;
 
@@ -129,28 +135,8 @@ public class ServerConfig {
     @Value("${infinispan.hotrod.topologyReplTimeout}")
     private long topologyReplTimeout;
 
-    // JGroups (JDBC discovery) configuration
-    @Value("${jgroups.jdbc.connection_url}")
-    private String jgroupsConnectionUrl;
-
-    @Value("${jgroups.jdbc.connection_username}")
-    private String jgroupsUsername;
-
-    @Value("${jgroups.jdbc.connection_password}")
-    private String jgroupsPassword;
-
-    // JGroups (AWS API discovery) configuration
-    @Value("${jgroups.aws_ping.tags}")
-    private String jgroupsTags;
-
-    @Value("${jgroups.aws_ping.filters}")
-    private String jgroupsFilters;
-
-    @Value("${jgroups.aws_ping.access_key}")
-    private String jgroupsAccessKey;
-
-    @Value("${jgroups.aws_ping.secret_key}")
-    private String jgroupsSecretKey;
+    @Autowired
+    private PropertyConfigurator propertyConfigurator;
 
     @PostConstruct
     public void init() {
@@ -168,8 +154,13 @@ public class ServerConfig {
         configurePrimaryCache();
         configureSecondaryCache();
 
+        try {
+            configureReadthrough();
+        } catch (ClassNotFoundException ex) {
+            log.error("Read-Through Cache Configuration failed", ex);
+        }
+
         configureHotRodServer();
-        configureJgroups();
 
         globalConfiguration = gcb.build();
     }
@@ -208,6 +199,32 @@ public class ServerConfig {
         secondaryCacheConfiguration = secondaryCacheConfigurationBuilder.build();
     }
 
+    private void configureReadthrough() throws ClassNotFoundException {
+        if (!readthroughEnabled) {
+            return;
+        }
+
+        ConfigurationBuilder readthroughCacheConfigurationBuilder = new ConfigurationBuilder();
+        readthroughCacheConfigurationBuilder
+            .clustering().cacheMode(readthroughCacheMode)
+            .locking()
+                .lockAcquisitionTimeout(readthroughCacheLockTimeout, TimeUnit.SECONDS)
+                .concurrencyLevel(readthroughCacheLockConcurrency)
+            .jmxStatistics().enable()
+            .persistence()
+                .passivation(false)
+                .addStore(JpaStoreConfigurationBuilder.class)
+                    .shared(true)
+                    .preload(false)
+                    .batchSize(5000)
+                    .persistenceUnitName(readthroughPersistenceUnitName)
+                    .storeMetadata(false)
+                    .entityClass(Class.forName(readthroughEntityClass))
+                    .ignoreModifications(true);
+
+        readthroughCacheConfiguration = readthroughCacheConfigurationBuilder.build();
+    }
+
     private void configureHotRodServer() {
         HotRodServerConfigurationBuilder builder = new HotRodServerConfigurationBuilder();
         builder.defaultCacheName(primaryCacheName)
@@ -223,14 +240,4 @@ public class ServerConfig {
         hotRodServerConfiguration = builder.build();
     }
 
-    private void configureJgroups() {
-        System.setProperty("jgroups.jdbc.connection_url", jgroupsConnectionUrl);
-        System.setProperty("jgroups.jdbc.connection_username", jgroupsUsername);
-        System.setProperty("jgroups.jdbc.connection_password", jgroupsPassword);
-
-        System.setProperty("jgroups.aws_ping.tags", jgroupsTags);
-        System.setProperty("jgroups.aws_ping.filters", jgroupsFilters);
-        System.setProperty("jgroups.aws_ping.access_key", jgroupsAccessKey);
-        System.setProperty("jgroups.aws_ping.secret_key", jgroupsSecretKey);
-    }
 }
