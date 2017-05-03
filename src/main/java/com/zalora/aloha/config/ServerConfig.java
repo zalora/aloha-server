@@ -40,6 +40,9 @@ public class ServerConfig {
     @Value("${infinispan.cluster.name}")
     private String clusterName;
 
+    @Value("${infinispan.cluster.network.address}")
+    private String networkAddress;
+
     @Getter
     @Value("${infinispan.cluster.statistics.enabled}")
     private boolean globalStatisticsEnabled;
@@ -87,6 +90,38 @@ public class ServerConfig {
     @Value("${infinispan.cache.secondary.stateTransferChunkSize}")
     private int secondaryStateTransferChunkSize;
 
+    // Read-Through cache configuration
+    @Getter
+    @Value("${infinispan.cache.readthrough.name}")
+    private String readthroughCacheName;
+
+    @Value("${infinispan.cache.readthrough.mode}")
+    private CacheMode readthroughCacheMode;
+
+    @Value("${infinispan.cache.readthrough.stateTransferChunkSize}")
+    private int readthroughStateTransferChunkSize;
+
+    @Value("${infinispan.cache.readthrough.lock.timeout}")
+    private int readthroughCacheLockTimeout;
+
+    @Value("${infinispan.cache.readthrough.lock.concurrency}")
+    private int readthroughCacheLockConcurrency;
+
+    @Value("${infinispan.cache.readthrough.enabled}")
+    private boolean readthroughEnabled;
+
+    @Value("${infinispan.cache.readthrough.preload}")
+    private boolean readthroughPreload;
+
+    @Value("${infinispan.cache.readthrough.preloadPageSize}")
+    private int readthroughPreloadPageSize;
+
+    @Value("${infinispan.cache.readthrough.entityClass}")
+    private String readthroughEntityClass;
+
+    @Value("${infinispan.cache.readthrough.persistenceUnitName}")
+    private String readthroughPersistenceUnitName;
+
     // HotRod server configuration
     @Value("${infinispan.hotrod.topologyLockTimeout}")
     private long topologyLockTimeout;
@@ -94,7 +129,7 @@ public class ServerConfig {
     @Value("${infinispan.hotrod.topologyReplTimeout}")
     private long topologyReplTimeout;
 
-    // JGroups configuration
+    // JGroups (JDBC discovery) configuration
     @Value("${jgroups.jdbc.connection_url}")
     private String jgroupsConnectionUrl;
 
@@ -104,8 +139,18 @@ public class ServerConfig {
     @Value("${jgroups.jdbc.connection_password}")
     private String jgroupsPassword;
 
-    @Value("${infinispan.cluster.network.address}")
-    private String networkAddress;
+    // JGroups (AWS API discovery) configuration
+    @Value("${jgroups.aws_ping.tags}")
+    private String jgroupsTags;
+
+    @Value("${jgroups.aws_ping.filters}")
+    private String jgroupsFilters;
+
+    @Value("${jgroups.aws_ping.access_key}")
+    private String jgroupsAccessKey;
+
+    @Value("${jgroups.aws_ping.secret_key}")
+    private String jgroupsSecretKey;
 
     @PostConstruct
     public void init() {
@@ -182,5 +227,10 @@ public class ServerConfig {
         System.setProperty("jgroups.jdbc.connection_url", jgroupsConnectionUrl);
         System.setProperty("jgroups.jdbc.connection_username", jgroupsUsername);
         System.setProperty("jgroups.jdbc.connection_password", jgroupsPassword);
+
+        System.setProperty("jgroups.aws_ping.tags", jgroupsTags);
+        System.setProperty("jgroups.aws_ping.filters", jgroupsFilters);
+        System.setProperty("jgroups.aws_ping.access_key", jgroupsAccessKey);
+        System.setProperty("jgroups.aws_ping.secret_key", jgroupsSecretKey);
     }
 }

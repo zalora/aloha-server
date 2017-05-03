@@ -29,6 +29,19 @@ infinispan:
         concurrency: 1024
       numOwners: 3 # Amount of machines in the cluster storing the key
 
+    readthrough:
+      name: readthrough
+      mode: REPL_ASYNC
+      stateTransferChunkSize: 128
+      enabled: false
+      preload: false
+      preloadPageSize: 5000
+      entityClass: com.zalora.aloha.models.entities.Product
+      persistenceUnitName: org.infinispan.persistence.jpa
+      lock:
+        timeout: 30 # Lock acquisition timeout in seconds
+        concurrency: 1024
+
 jgroups:
   aws: false
   jdbc:
@@ -41,7 +54,7 @@ jgroups:
     access_key:
     secret_key:
 
-server.port: 6666
+server.port: 8080
 logging.level.root: INFO
 management.security.enabled: false
 endpoints.shutdown.enabled: true
