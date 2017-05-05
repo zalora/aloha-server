@@ -1,4 +1,4 @@
-package com.zalora.aloha.models;
+package com.zalora.aloha.domain;
 
 import javax.persistence.*;
 import lombok.*;

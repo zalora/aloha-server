@@ -1,4 +1,4 @@
-package com.zalora.aloha.models;
+package com.zalora.aloha.domain;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Component;

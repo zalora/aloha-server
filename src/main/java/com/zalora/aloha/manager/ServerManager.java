@@ -4,7 +4,7 @@ import com.zalora.aloha.config.ServerConfig;
 import javax.annotation.PostConstruct;
 
 import com.zalora.aloha.memcached.MemcachedItem;
-import com.zalora.aloha.models.CacheItem;
+import com.zalora.aloha.domain.CacheItem;
 import lombok.Getter;
 import org.infinispan.Cache;
 import org.infinispan.manager.DefaultCacheManager;

@@ -3,7 +3,7 @@ infinispan:
     name: Kamehameha
     statistics.enabled: true
     jgroups.config:
-    network.address:
+    network.address: 127.0.0.1
 
   hotrod:
     # Infinispan default is 10,000
@@ -36,7 +36,7 @@ infinispan:
       enabled: false
       preload: false
       preloadPageSize: 5000
-      entityClass: com.zalora.aloha.models.CacheItem
+      entityClass: com.zalora.aloha.domain.CacheItem
       persistenceUnitName: org.infinispan.persistence.jpa
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
@@ -44,11 +44,6 @@ infinispan:
 
 jgroups:
   aws: false
-  jdbc:
-    connection_url:
-    connection_username: root
-    connection_password:
-
   aws_ping:
     tags:
     filters:
@@ -56,30 +51,17 @@ jgroups:
     secret_key:
 
 spring:
-  jpa:
-    show-sql: false
-    hbm2ddl-auto: none
-    properties.hibernate.dialect:
-
   datasource:
     url:
-    username:
+    username: root
     password:
-    driver-class-name:
+    driver-class-name: com.mysql.jdbc.Driver
     testWhileIdle: false
-    validationQuery:
 
 server.port: 8080
 logging.level.root: INFO
 management.security.enabled: false
 endpoints.shutdown.enabled: true
-
----
-spring.profiles: jdbc
-
-infinispan:
-  cluster:
-    jgroups.config: jgroups-jdbc.xml
 
 ---
 spring.profiles: aws_ping
