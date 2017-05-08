@@ -53,9 +53,9 @@ jgroups:
 spring:
   datasource:
     url:
-    username: root
+    username:
     password:
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name:
     testWhileIdle: false
 
 server.port: 8080

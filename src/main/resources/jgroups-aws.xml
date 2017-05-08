@@ -16,13 +16,9 @@
          thread_pool.keep_alive_time="10000"
     />
 
-    <com.meltmedia.jgroups.aws.AWS_PING
-            timeout="3000"
-            port_number="7800"
-            tags="${jgroups.aws_ping.tags:}"
-            filters="${jgroups.aws_ping.filters:}"
-            access_key="${jgroups.aws_ping.access_key}"
-            secret_key="${jgroups.aws_ping.secret_key}"/>
+    <com.zalora.jgroups.aws.AWS_PING
+        key="aloha"
+        value="sg"
     />
 
     <MERGE3 min_interval="10000"

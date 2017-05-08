@@ -20,6 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <infinispan.version>9.0.0.Final</infinispan.version>
+        <aws.sdk.version>1.11.126</aws.sdk.version>
     </properties>
 
     <dependencies>
@@ -93,9 +94,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.meltmedia.jgroups</groupId>
-            <artifactId>jgroups-aws</artifactId>
-            <version>1.4.1</version>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-ec2</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
     </dependencies>
 
