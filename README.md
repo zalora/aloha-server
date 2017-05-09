@@ -10,30 +10,54 @@ in front.
 
 ## Configuration
 
-If you're not familiar with infinispan, have a look at [Aloha](https://github.com/zalora/aloha "Aloha"),
-which might be more interesting for you and is also properly documented ;-)
+Configuration takes place in three files:
 
-### Docker
+- application.yml
+- hibernate.properties (If you want to use Read-Through)
+- jgroups-aws.xml (If you are using AWS API based discovery)
 
-The docker container is configured by environment variables. In general all variables in the
-application.yml can be overridden, but the following are important for daily use:
+You can change the variables in the configuration files via command line parameters, e.g.
 
-Choose from either JDBC based or AWS API discovery:
+`$ java -Dinfinispan.cluster.name=Kohala -jar aloha-server.jar`
 
-- `SPRING_PROFILES_ACTIVE=jdbc` to activate jgroups JDBC
-    - `jgroups.jdbc.connection_url` to set the connection string, e.g. `jdbc:mysql://rds.example.com/dbname`
-    - `jgroups.jdbc.connection_username` to set the database username
-    - `jgroups.jdbc.connection_password` to set the database password
+This example changes the cluster name to Kohala
 
-- `SPRING_PROFILES_ACTIVE=aws_ping` to activate jgroups AWS Ping
-    - `jgroups.aws_ping.tags` ec2 instance tags
-    - `jgroups.aws_ping.filters` AWS API filters
-    - `jgroups.aws_ping.access_key` AWS Access Key
-    - `jgroups.aws_ping.secret_key` AWS Secret Key
+### application.yml
 
-- `AWS=true` to make the docker start script assign the network interface IP address instead of `127.0.0.1`
-- `infinispan.cluster.network.address` to set the Hot Rot listen address
-- `infinispan.cluster.name` to change the name of the cluster, which comes in handy when you have more than one.
+To run Aloha-Server in production, those values might be interesting for you to change:
+
+- **infinispan.cluster.name**: Change the cluster name if you have more than one
+- **infinispan.cluster.jgroups.config**: The jgroups file used for autodiscovery (jgroups-aws.xml|/default-configs/default-jgroups-(tcp|udp).xml)
+- **infinispan.cluster.network.address**: IP address the Hot Rod server will listen (127.0.0.1 by default)
+
+### jgroups-aws.xml
+
+AWS Discovery uses the IAM Role permissions to retrieve the private IP address from each host which matches the tag
+key-value combination.
+
+The policy of the IAM role has to allow all describe actions:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "ec2:Describe*",
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+If you prefer to provide Access- and Secret Key instead, make sure to export the following environment variables:
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_KEY
+
+To configure the key and value of the tag, use the following variables:
+
+- jgroups.tag.key
+- jgroups.tag.value
 
 ### Ports
 
@@ -42,5 +66,6 @@ and jolokia listening on the standard port `8080`. JGroups needs `7800` for node
 
 ### Loadbalancer
 
-This setup doesn't need a load balancer, as the client is smart enough to know which server has which key. The
-client however needs the IP of at least one server to start, but this should be easy to find out via the AWS API or Route53.
+This setup doesn't need a load balancer, as the client is smart enough to know which server has which key.
+The client however needs the IP of at least one server to start, but this should be easy to find out via the
+AWS API or Route53.

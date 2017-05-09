@@ -68,8 +68,8 @@ public class AWS_PING extends Discovery {
         // Try to get credentials from ENV and via an instance role
         ec2 = AmazonEC2ClientBuilder.standard().withCredentials(
             new AWSCredentialsProviderChain(
-                new EnvironmentVariableCredentialsProvider(),
-                new InstanceProfileCredentialsProvider(true)
+                new InstanceProfileCredentialsProvider(true),
+                new EnvironmentVariableCredentialsProvider()
             )
         ).withRegion(region).build();
     }

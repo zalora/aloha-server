@@ -42,14 +42,6 @@ infinispan:
         timeout: 30 # Lock acquisition timeout in seconds
         concurrency: 1024
 
-jgroups:
-  aws: false
-  aws_ping:
-    tags:
-    filters:
-    access_key:
-    secret_key:
-
 spring:
   datasource:
     url:
@@ -62,10 +54,3 @@ server.port: 8080
 logging.level.root: INFO
 management.security.enabled: false
 endpoints.shutdown.enabled: true
-
----
-spring.profiles: aws_ping
-
-infinispan:
-  cluster:
-    jgroups.config: jgroups-aws.xml

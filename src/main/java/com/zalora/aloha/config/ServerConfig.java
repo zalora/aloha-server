@@ -134,9 +134,6 @@ public class ServerConfig {
     @Value("${infinispan.hotrod.topologyReplTimeout}")
     private long topologyReplTimeout;
 
-    @Autowired
-    private PropertyConfigurator propertyConfigurator;
-
     @PostConstruct
     public void init() {
         GlobalConfigurationBuilder gcb = new GlobalConfigurationBuilder();
