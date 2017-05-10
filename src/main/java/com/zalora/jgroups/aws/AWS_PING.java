@@ -12,6 +12,7 @@ import org.jgroups.protocols.*;
 import org.jgroups.stack.IpAddress;
 import org.jgroups.util.NameCache;
 import org.jgroups.util.Responses;
+import org.slf4j.Logger;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +20,12 @@ import java.util.List;
 /**
  * Ported AWS_PING to JGroups 4
  *
- * @link https://github.com/meltmedia/jgroups-aws
  * @author Wolfram Huesken <wolfram.huesken@zalora.com>
+ * @link https://github.com/meltmedia/jgroups-aws
  */
 public class AWS_PING extends Discovery {
+
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(AWS_PING.class);
 
     static {
         ClassConfigurator.addProtocol((short) 666, AWS_PING.class);
@@ -62,6 +65,8 @@ public class AWS_PING extends Discovery {
         filters.add(new Filter(String.format("tag:%s", key), new ArrayList<String>() {{
             add(value);
         }}));
+
+        logger.info("AWS_PING is filtering by {}:{} in region {}", key, value, region);
 
         filters.add(new Filter("instance-state-name", new ArrayList<String>() {{
             add("running");
@@ -133,7 +138,7 @@ public class AWS_PING extends Discovery {
             try {
                 clusterMembers.add(new IpAddress(privateIpAddress, port));
             } catch (UnknownHostException e) {
-                log.warn("Could not create an IpAddress for " + privateIpAddress + ":" + port);
+                logger.warn("Could not create an IpAddress for " + privateIpAddress + ":" + port);
             }
         }
 
@@ -155,20 +160,22 @@ public class AWS_PING extends Discovery {
                 try {
                     ipAddresses.add(instance.getPrivateIpAddress());
                 } catch (Exception ex) {
-                    log.error("Failed to parse IP address", ex);
+                    logger.error("Failed to parse IP address", ex);
                 }
             }
         }
+
+        logger.debug("Discovered IP addresses: {}", ipAddresses);
 
         return ipAddresses;
     }
 
     private void sendDiscoveryRequest(Message req) {
         try {
-            log.trace("%s: sending discovery request to %s", local_addr, req.getDest());
+            logger.debug("{}: sending discovery request to {}", local_addr, req.getDest());
             down_prot.down(req);
         } catch (Throwable t) {
-            log.trace("sending discovery request to %s failed: %s", req.dest(), t);
+            logger.warn("sending discovery request to {} failed: {}", req.dest(), t);
         }
     }
 

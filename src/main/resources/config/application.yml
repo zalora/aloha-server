@@ -50,7 +50,10 @@ spring:
     driver-class-name:
     testWhileIdle: false
 
-server.port: 8080
 logging.level.root: INFO
+logging.level.com.zalora: INFO
+logging.level.org.infinispan.topology: INFO
+
+server.port: 8080
 management.security.enabled: false
 endpoints.shutdown.enabled: true

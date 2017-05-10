@@ -143,8 +143,11 @@ public class ServerConfig {
 
         gcb.shutdown().hookBehavior(ShutdownHookBehavior.REGISTER);
 
-        if (!jgroupsConfig.equals("")) {
+        if (jgroupsConfig.equals("")) {
+            log.info("Using default jgroups discovery");
+        } else {
             gcb.transport().addProperty("configurationFile", jgroupsConfig);
+            log.info("Using {} for discovery", jgroupsConfig);
         }
 
         configurePrimaryCache();
