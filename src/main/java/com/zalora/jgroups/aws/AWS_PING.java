@@ -63,6 +63,10 @@ public class AWS_PING extends Discovery {
             add(value);
         }}));
 
+        filters.add(new Filter("instance-state-name", new ArrayList<String>() {{
+            add("running");
+        }}));
+
         describeInstancesRequest.setFilters(filters);
 
         // Try to get credentials from ENV and via an instance role
