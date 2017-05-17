@@ -1,20 +1,17 @@
 package com.zalora.aloha.config;
 
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.infinispan.configuration.cache.CacheMode;
-import org.infinispan.configuration.cache.Configuration;
-import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.global.GlobalConfiguration;
-import org.infinispan.configuration.global.GlobalConfigurationBuilder;
-import org.infinispan.configuration.global.ShutdownHookBehavior;
+import org.infinispan.configuration.cache.*;
+import org.infinispan.configuration.global.*;
 import org.infinispan.persistence.jpa.configuration.JpaStoreConfigurationBuilder;
 import org.infinispan.server.hotrod.configuration.HotRodServerConfiguration;
 import org.infinispan.server.hotrod.configuration.HotRodServerConfigurationBuilder;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import javax.annotation.PostConstruct;
 
 /**
  * @author Wolfram Huesken <wolfram.huesken@zalora.com>
@@ -24,21 +21,6 @@ import org.springframework.stereotype.Component;
 public class ServerConfig {
 
     private static final String CACHE_MODE_DISTRIBUTED = "DISTRIBUTED";
-
-    @Getter
-    private GlobalConfiguration globalConfiguration;
-
-    @Getter
-    private Configuration primaryCacheConfiguration;
-
-    @Getter
-    private Configuration secondaryCacheConfiguration;
-
-    @Getter
-    private Configuration readthroughCacheConfiguration;
-
-    @Getter
-    private HotRodServerConfiguration hotRodServerConfiguration;
 
     // General cluster configuration
     @Value("${infinispan.cluster.name}")
@@ -74,6 +56,32 @@ public class ServerConfig {
     @Value("${infinispan.cache.primary.stateTransferChunkSize}")
     private int primaryStateTransferChunkSize;
 
+    // Primary cache read-through configuration
+    @Getter
+    @Value("${infinispan.cache.primary.readthrough.enabled}")
+    private boolean readthroughEnabled;
+
+    @Value("${infinispan.cache.primary.readthrough.preload}")
+    private boolean readthroughPreload;
+
+    @Value("${infinispan.cache.primary.readthrough.preloadPageSize}")
+    private int readthroughPreloadPageSize;
+
+    @Value("${infinispan.cache.primary.readthrough.entityClass}")
+    private String readthroughEntityClass;
+
+    @Value("${infinispan.cache.primary.readthrough.persistenceUnitName}")
+    private String readthroughPersistenceUnitName;
+
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
     // Secondary cache configuration
     @Getter
     @Value("${infinispan.cache.secondary.name}")
@@ -94,39 +102,6 @@ public class ServerConfig {
     @Value("${infinispan.cache.secondary.stateTransferChunkSize}")
     private int secondaryStateTransferChunkSize;
 
-    // Read-Through cache configuration
-    @Getter
-    @Value("${infinispan.cache.readthrough.name}")
-    private String readthroughCacheName;
-
-    @Value("${infinispan.cache.readthrough.mode}")
-    private CacheMode readthroughCacheMode;
-
-    @Value("${infinispan.cache.readthrough.stateTransferChunkSize}")
-    private int readthroughStateTransferChunkSize;
-
-    @Value("${infinispan.cache.readthrough.lock.timeout}")
-    private int readthroughCacheLockTimeout;
-
-    @Value("${infinispan.cache.readthrough.lock.concurrency}")
-    private int readthroughCacheLockConcurrency;
-
-    @Getter
-    @Value("${infinispan.cache.readthrough.enabled}")
-    private boolean readthroughEnabled;
-
-    @Value("${infinispan.cache.readthrough.preload}")
-    private boolean readthroughPreload;
-
-    @Value("${infinispan.cache.readthrough.preloadPageSize}")
-    private int readthroughPreloadPageSize;
-
-    @Value("${infinispan.cache.readthrough.entityClass}")
-    private String readthroughEntityClass;
-
-    @Value("${infinispan.cache.readthrough.persistenceUnitName}")
-    private String readthroughPersistenceUnitName;
-
     // HotRod server configuration
     @Value("${infinispan.hotrod.topologyLockTimeout}")
     private long topologyLockTimeout;
@@ -136,6 +111,14 @@ public class ServerConfig {
 
     @PostConstruct
     public void init() {
+        System.setProperty("readthrough.entityClass", readthroughEntityClass);
+        System.setProperty("spring.datasource.url", dbUrl);
+        System.setProperty("spring.datasource.username", dbUsername);
+        System.setProperty("spring.datasource.password", dbPassword);
+    }
+
+    @Bean
+    public GlobalConfiguration globalConfig() {
         GlobalConfigurationBuilder gcb = new GlobalConfigurationBuilder();
         gcb.transport().defaultTransport()
             .clusterName(clusterName)
@@ -150,39 +133,52 @@ public class ServerConfig {
             log.info("Using {} for discovery", jgroupsConfig);
         }
 
-        configurePrimaryCache();
-        configureSecondaryCache();
-
-        try {
-            configureReadthrough();
-        } catch (ClassNotFoundException ex) {
-            log.error("Read-Through Cache Configuration failed", ex);
-        }
-
-        configureHotRodServer();
-
-        globalConfiguration = gcb.build();
+        return gcb.build();
     }
 
-    private void configurePrimaryCache() {
-        ConfigurationBuilder primaryCacheConfigurationBuilder = new ConfigurationBuilder();
-
-        primaryCacheConfigurationBuilder
+    @Bean
+    public Configuration mainConfig() {
+        ConfigurationBuilder mainConfigBuilder = new ConfigurationBuilder();
+        mainConfigBuilder
             .clustering().cacheMode(primaryCacheMode)
             .stateTransfer().chunkSize(primaryStateTransferChunkSize)
+            .compatibility().enable()
             .jmxStatistics().enable()
             .locking()
                 .lockAcquisitionTimeout(primaryCacheLockTimeout, TimeUnit.SECONDS)
                 .concurrencyLevel(primaryCacheLockConcurrency);
 
         if (primaryCacheMode.friendlyCacheModeString().equals(CACHE_MODE_DISTRIBUTED)) {
-            primaryCacheConfigurationBuilder.clustering().hash().numOwners(primaryCacheNumOwners);
+            mainConfigBuilder.clustering().hash().numOwners(primaryCacheNumOwners);
         }
 
-        primaryCacheConfiguration = primaryCacheConfigurationBuilder.build();
+        if (readthroughEnabled) {
+            Class<?> entityClass;
+            try {
+                    entityClass = Class.forName(readthroughEntityClass);
+                } catch (ClassNotFoundException ex) {
+                    log.error("Entity Class not found, continuing without read-through", ex);
+                    return mainConfigBuilder.build();
+                }
+
+            mainConfigBuilder.persistence()
+                .passivation(false)
+                .addStore(JpaStoreConfigurationBuilder.class)
+                    .shared(true)
+                    .preload(readthroughPreload)
+                    .persistenceUnitName(readthroughPersistenceUnitName)
+                    .storeMetadata(false)
+                    .entityClass(entityClass)
+                    .ignoreModifications(true);
+
+            log.info("Enabled read through for {}", readthroughEntityClass);
+        }
+
+        return mainConfigBuilder.build();
     }
 
-    private void configureSecondaryCache() {
+    @Bean
+    public Configuration sessionConfig() {
         ConfigurationBuilder secondaryCacheConfigurationBuilder = new ConfigurationBuilder();
         secondaryCacheConfigurationBuilder
             .clustering().cacheMode(secondaryCacheMode)
@@ -195,36 +191,11 @@ public class ServerConfig {
             secondaryCacheConfigurationBuilder.clustering().hash().numOwners(secondaryCacheNumOwners);
         }
 
-        secondaryCacheConfiguration = secondaryCacheConfigurationBuilder.build();
+        return secondaryCacheConfigurationBuilder.build();
     }
 
-    private void configureReadthrough() throws ClassNotFoundException {
-        if (!readthroughEnabled) {
-            return;
-        }
-
-        ConfigurationBuilder readthroughCacheConfigurationBuilder = new ConfigurationBuilder();
-        readthroughCacheConfigurationBuilder
-            .clustering().cacheMode(readthroughCacheMode)
-            .locking()
-                .lockAcquisitionTimeout(readthroughCacheLockTimeout, TimeUnit.SECONDS)
-                .concurrencyLevel(readthroughCacheLockConcurrency)
-            .jmxStatistics().enable()
-            .persistence()
-                .passivation(false)
-                .addStore(JpaStoreConfigurationBuilder.class)
-                    .shared(true)
-                    .preload(false)
-                    .batchSize(5000)
-                    .persistenceUnitName(readthroughPersistenceUnitName)
-                    .storeMetadata(false)
-                    .entityClass(Class.forName(readthroughEntityClass))
-                    .ignoreModifications(true);
-
-        readthroughCacheConfiguration = readthroughCacheConfigurationBuilder.build();
-    }
-
-    private void configureHotRodServer() {
+    @Bean
+    private HotRodServerConfiguration hotRodServerConfiguration() {
         HotRodServerConfigurationBuilder builder = new HotRodServerConfigurationBuilder();
         builder.defaultCacheName(primaryCacheName)
             .authentication().disable()
@@ -236,7 +207,7 @@ public class ServerConfig {
             log.info("Hot Rod Network Address: {}", networkAddress);
         }
 
-        hotRodServerConfiguration = builder.build();
+        return builder.build();
     }
 
 }

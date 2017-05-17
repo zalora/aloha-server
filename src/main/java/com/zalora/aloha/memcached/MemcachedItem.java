@@ -1,32 +1,36 @@
 package com.zalora.aloha.memcached;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
+import javax.persistence.*;
 
 /**
  * @author Wolfram Huesken <wolfram.huesken@zalora.com>
  */
 @Data
+@Entity
 @NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "cache")
 public class MemcachedItem implements Serializable {
 
     private static final long serialVersionUID = 7503234879985469265L;
 
-    private byte[] data;
-    private long expire;
-    private long flags;
+    @Id
+    @Column(name = "id_cache")
     private String key;
 
-    public MemcachedItem(String key) {
-        this.key = key;
-    }
+    @Column(name = "data", columnDefinition = "MEDIUMBLOB", nullable = false)
+    private byte[] data;
 
-    public MemcachedItem(byte[] data, long expire, long flags, String key) {
-        this.data = data;
-        this.expire = expire;
-        this.flags = flags;
+    @Column(name = "flags", columnDefinition = "SMALLINT DEFAULT 0", nullable = false)
+    private long flags;
+
+    @Column(name = "expire", columnDefinition = "BIGINT DEFAULT 0", nullable = false)
+    private long expire;
+
+    public MemcachedItem(String key) {
         this.key = key;
     }
 

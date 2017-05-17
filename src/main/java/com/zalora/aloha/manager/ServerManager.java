@@ -1,15 +1,14 @@
 package com.zalora.aloha.manager;
 
-import com.zalora.aloha.config.ServerConfig;
 import javax.annotation.PostConstruct;
 
-import com.zalora.aloha.memcached.MemcachedItem;
-import com.zalora.aloha.domain.CacheItem;
+import com.zalora.aloha.config.ServerConfig;
 import lombok.Getter;
-import org.infinispan.Cache;
-import org.infinispan.manager.DefaultCacheManager;
-import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.global.GlobalConfiguration;
+import org.infinispan.manager.*;
 import org.infinispan.server.hotrod.HotRodServer;
+import org.infinispan.server.hotrod.configuration.HotRodServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -20,60 +19,30 @@ import org.springframework.util.Assert;
 @Component
 public class ServerManager {
 
+    @Autowired
+    private HotRodServerConfiguration hotRodServerConfiguration;
+
     @Getter
+    private HotRodServer hotRodServer = new HotRodServer();
+
     private EmbeddedCacheManager embeddedCacheManager;
 
-    @Getter
-    private final HotRodServer hotRodServer = new HotRodServer();
-
-    private ServerConfig serverConfig;
-
     @Autowired
-    public ServerManager(ServerConfig cacheConfig) {
-        Assert.notNull(cacheConfig, "Configuration could not be loaded");
+    public ServerManager(GlobalConfiguration globalConfig, ServerConfig serverConfig, Configuration mainConfig, Configuration sessionConfig) {
+        Assert.notNull(globalConfig, "Global Configuration must not be null");
+        Assert.notNull(serverConfig, "Server Configuration must not be null");
+        Assert.notNull(mainConfig, "Main Cache Configuration must not be null");
+        Assert.notNull(sessionConfig, "Secondary Cache Configuration must not be null");
 
-        this.serverConfig = cacheConfig;
+        embeddedCacheManager = new DefaultCacheManager(globalConfig);
+        embeddedCacheManager.defineConfiguration(serverConfig.getPrimaryCacheName(), mainConfig);
+        embeddedCacheManager.defineConfiguration(serverConfig.getSecondaryCacheName(), sessionConfig);
     }
 
     @PostConstruct
     public void init() {
-        embeddedCacheManager = new DefaultCacheManager(serverConfig.getGlobalConfiguration());
-
-        // Configure primary cache
-        embeddedCacheManager.defineConfiguration(
-            serverConfig.getPrimaryCacheName(),
-            serverConfig.getPrimaryCacheConfiguration()
-        );
-
-        // Configure secondary cache
-        embeddedCacheManager.defineConfiguration(
-            serverConfig.getSecondaryCacheName(),
-            serverConfig.getSecondaryCacheConfiguration()
-        );
-
-        // Configure read-through cache
-        if (serverConfig.isReadthroughEnabled()) {
-            embeddedCacheManager.defineConfiguration(
-                serverConfig.getReadthroughCacheName(),
-                serverConfig.getReadthroughCacheConfiguration()
-            );
-        }
-
         // Start HotRod Server
-        HotRodServer server = new HotRodServer();
-        server.start(serverConfig.getHotRodServerConfiguration(), embeddedCacheManager);
-    }
-
-    public Cache<String, MemcachedItem> getPrimaryCache() {
-        return embeddedCacheManager.getCache(serverConfig.getPrimaryCacheName());
-    }
-
-    public Cache<String, MemcachedItem> getSecondaryCache() {
-        return embeddedCacheManager.getCache(serverConfig.getSecondaryCacheName());
-    }
-
-    public Cache<String, CacheItem> getReadthroughCache() {
-        return embeddedCacheManager.getCache(serverConfig.getReadthroughCacheName());
+        hotRodServer.start(hotRodServerConfiguration, embeddedCacheManager);
     }
 
 }

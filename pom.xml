@@ -6,7 +6,7 @@
 
     <groupId>com.zalora.shop</groupId>
     <artifactId>aloha-server</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -20,7 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <infinispan.version>9.0.0.Final</infinispan.version>
-        <aws.sdk.version>1.11.126</aws.sdk.version>
+        <aws.sdk.version>1.11.132</aws.sdk.version>
     </properties>
 
     <dependencies>
@@ -42,19 +42,30 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tomcat</groupId>
+                    <artifactId>tomcat-jdbc</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-hikaricp</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
 
         <!-- Infinispan -->
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
-            <version>${infinispan.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-embedded</artifactId>
             <version>${infinispan.version}</version>
         </dependency>
 
@@ -70,7 +81,7 @@
             <version>${infinispan.version}</version>
         </dependency>
 
-        <!-- Other -->
+        <!-- Database connectors-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -81,16 +92,15 @@
             <artifactId>h2</artifactId>
         </dependency>
 
+        <!-- Other -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.14</version>
         </dependency>
 
         <dependency>
             <groupId>org.jolokia</groupId>
             <artifactId>jolokia-core</artifactId>
-            <version>1.3.5</version>
         </dependency>
 
         <dependency>

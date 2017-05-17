@@ -15,10 +15,16 @@ infinispan:
       name: main
       mode: REPL_ASYNC
       stateTransferChunkSize: 128
+      numOwners: 3 # Amount of machines in the cluster storing the key
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
         concurrency: 1024
-      numOwners: 3 # Amount of machines in the cluster storing the key
+      readthrough:
+        enabled: false
+        preload: false
+        preloadPageSize: 5000
+        entityClass: com.zalora.aloha.memcached.MemcachedItem
+        persistenceUnitName: readthroughJPA
 
     secondary:
       name: session
@@ -29,30 +35,25 @@ infinispan:
         concurrency: 1024
       numOwners: 3 # Amount of machines in the cluster storing the key
 
-    readthrough:
-      name: readthrough
-      mode: REPL_ASYNC
-      stateTransferChunkSize: 128
-      enabled: false
-      preload: false
-      preloadPageSize: 5000
-      entityClass: com.zalora.aloha.domain.CacheItem
-      persistenceUnitName: org.infinispan.persistence.jpa
-      lock:
-        timeout: 30 # Lock acquisition timeout in seconds
-        concurrency: 1024
-
 spring:
   datasource:
     url:
     username:
     password:
-    driver-class-name:
-    testWhileIdle: false
+
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 30
+
+  jpa:
+    show-sql: true
+    spring.jpa.generate-ddl: false
 
 logging.level.root: INFO
 logging.level.com.zalora: INFO
 logging.level.org.infinispan.topology: INFO
+logging.level.org.hibernate: INFO
+logging.level.org.springframework.orm: INFO
 
 server.port: 8080
 management.security.enabled: false
