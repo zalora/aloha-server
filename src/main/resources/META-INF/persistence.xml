@@ -4,13 +4,16 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd" version="2.0">
     <persistence-unit name="readthroughJPA">
         <class>${readthrough.entityClass}</class>
+        <class>org.infinispan.persistence.jpa.impl.MetadataEntity</class>
         <properties>
             <property name="hibernate.connection.url" value="${spring.datasource.url}"/>
             <property name="hibernate.connection.username" value="${spring.datasource.username}"/>
             <property name="hibernate.connection.password" value="${spring.datasource.password}"/>
-            <property name="hibernate.show_sql" value="${spring.jpa.show-sql}" />
-            <property name="hibernate.hbm2ddl.auto" value="${spring.jpa.hbm2ddl-auto}" />
+            <property name="hibernate.hbm2ddl.auto" value="${spring.jpa.hibernate.ddl-auto}" />
             <property name="hibernate.jdbc.fetch_size" value="50" />
+
+            <property name="hibernate.show_sql" value="${spring.jpa.show-sql}" />
+            <property name="hibernate.format_sql" value="${spring.jpa.show-sql}" />
 
             <property name="hibernate.hikari.maximumPoolSize" value="50" />
             <property name="hibernate.hikari.idleTimeout" value="30000" />

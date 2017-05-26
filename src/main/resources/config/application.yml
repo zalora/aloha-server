@@ -16,6 +16,7 @@ infinispan:
       mode: REPL_ASYNC
       stateTransferChunkSize: 128
       numOwners: 3 # Amount of machines in the cluster storing the key
+      defaultExpiration: 345600 # If no expiration is set, this value is set instead (value in seconds)
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
         concurrency: 1024
@@ -30,6 +31,7 @@ infinispan:
       name: session
       mode: REPL_SYNC
       stateTransferChunkSize: 128
+      defaultExpiration: 604800 # If no expiration is set, this value is set instead (value in seconds)
       lock:
         timeout: 30 # Lock acquisition timeout in seconds
         concurrency: 1024
@@ -46,8 +48,8 @@ spring:
       maximum-pool-size: 30
 
   jpa:
-    show-sql: true
-    spring.jpa.generate-ddl: false
+    show-sql: false
+    hibernate.ddl-auto: validate
 
 logging.level.root: INFO
 logging.level.com.zalora: INFO

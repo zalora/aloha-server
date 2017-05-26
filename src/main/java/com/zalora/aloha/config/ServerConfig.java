@@ -56,6 +56,9 @@ public class ServerConfig {
     @Value("${infinispan.cache.primary.stateTransferChunkSize}")
     private int primaryStateTransferChunkSize;
 
+    @Value("${infinispan.cache.primary.defaultExpiration}")
+    private long primaryCacheDefaultExpiration;
+
     // Primary cache read-through configuration
     @Getter
     @Value("${infinispan.cache.primary.readthrough.enabled}")
@@ -82,6 +85,12 @@ public class ServerConfig {
     @Value("${spring.datasource.password}")
     private String dbPassword;
 
+    @Value("${spring.jpa.show-sql}")
+    private String showSql;
+
+    @Value("${spring.jpa.hibernate.ddl-auto}")
+    private String ddlAuto;
+
     // Secondary cache configuration
     @Getter
     @Value("${infinispan.cache.secondary.name}")
@@ -102,6 +111,9 @@ public class ServerConfig {
     @Value("${infinispan.cache.secondary.stateTransferChunkSize}")
     private int secondaryStateTransferChunkSize;
 
+    @Value("${infinispan.cache.secondary.defaultExpiration}")
+    private long secondaryCacheDefaultExpiration;
+
     // HotRod server configuration
     @Value("${infinispan.hotrod.topologyLockTimeout}")
     private long topologyLockTimeout;
@@ -115,6 +127,9 @@ public class ServerConfig {
         System.setProperty("spring.datasource.url", dbUrl);
         System.setProperty("spring.datasource.username", dbUsername);
         System.setProperty("spring.datasource.password", dbPassword);
+
+        System.setProperty("spring.jpa.hibernate.ddl-auto", ddlAuto);
+        System.setProperty("spring.jpa.show_sql", showSql);
     }
 
     @Bean
@@ -148,6 +163,10 @@ public class ServerConfig {
                 .lockAcquisitionTimeout(primaryCacheLockTimeout, TimeUnit.SECONDS)
                 .concurrencyLevel(primaryCacheLockConcurrency);
 
+        if (primaryCacheDefaultExpiration > 0) {
+            mainConfigBuilder.expiration().lifespan(primaryCacheDefaultExpiration, TimeUnit.SECONDS);
+        }
+
         if (primaryCacheMode.friendlyCacheModeString().equals(CACHE_MODE_DISTRIBUTED)) {
             mainConfigBuilder.clustering().hash().numOwners(primaryCacheNumOwners);
         }
@@ -167,7 +186,7 @@ public class ServerConfig {
                     .shared(true)
                     .preload(readthroughPreload)
                     .persistenceUnitName(readthroughPersistenceUnitName)
-                    .storeMetadata(false)
+                    .storeMetadata(true)
                     .entityClass(entityClass)
                     .ignoreModifications(true);
 
@@ -179,8 +198,8 @@ public class ServerConfig {
 
     @Bean
     public Configuration sessionConfig() {
-        ConfigurationBuilder secondaryCacheConfigurationBuilder = new ConfigurationBuilder();
-        secondaryCacheConfigurationBuilder
+        ConfigurationBuilder sessionConfigBuilder = new ConfigurationBuilder();
+        sessionConfigBuilder
             .clustering().cacheMode(secondaryCacheMode)
             .jmxStatistics().enable()
             .locking()
@@ -188,10 +207,14 @@ public class ServerConfig {
                 .concurrencyLevel(secondaryCacheLockConcurrency);
 
         if (secondaryCacheMode.friendlyCacheModeString().equals(CACHE_MODE_DISTRIBUTED)) {
-            secondaryCacheConfigurationBuilder.clustering().hash().numOwners(secondaryCacheNumOwners);
+            sessionConfigBuilder.clustering().hash().numOwners(secondaryCacheNumOwners);
         }
 
-        return secondaryCacheConfigurationBuilder.build();
+        if (secondaryCacheDefaultExpiration > 0) {
+            sessionConfigBuilder.expiration().lifespan(secondaryCacheDefaultExpiration, TimeUnit.SECONDS);
+        }
+
+        return sessionConfigBuilder.build();
     }
 
     @Bean
