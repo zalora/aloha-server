@@ -91,6 +91,10 @@ public class ServerConfig {
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String ddlAuto;
 
+    @Getter
+    @Value("${infinispan.cache.primary.readthrough.compressor}")
+    private String compressorClass;
+
     // Secondary cache configuration
     @Getter
     @Value("${infinispan.cache.secondary.name}")

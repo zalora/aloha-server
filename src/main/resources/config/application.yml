@@ -26,6 +26,7 @@ infinispan:
         preloadPageSize: 5000
         entityClass: com.zalora.aloha.memcached.MemcachedItem
         persistenceUnitName: readthroughJPA
+        compressor: com.zalora.aloha.compressor.Lz4
 
     secondary:
       name: session
