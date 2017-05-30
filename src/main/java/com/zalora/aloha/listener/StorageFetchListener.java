@@ -10,7 +10,7 @@ import org.infinispan.notifications.cachelistener.event.*;
  */
 @Slf4j
 @Listener(observation = Listener.Observation.POST)
-public class MetadataListener {
+public class StorageFetchListener {
 
     @CacheEntryLoaded
     @SuppressWarnings("unchecked")

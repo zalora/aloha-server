@@ -76,7 +76,7 @@ public class ServerManager {
         events.add(CacheEntryLoaded.class);
 
         embeddedCacheManager.getCache("main").addFilteredListener(
-            new MetadataListener(), null, new MetadataEventConverter(compressor), events
+            new StorageFetchListener(), null, new DataCompressionEventConverter(compressor), events
         );
 
         log.info("Read-through compressor {} added to main cache", compressor.getClass().getSimpleName());

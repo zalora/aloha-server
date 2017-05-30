@@ -13,11 +13,11 @@ import java.io.Serializable;
  * @author Wolfram Huesken <wolfram.huesken@zalora.com>
  */
 @Slf4j
-public class MetadataEventConverter implements CacheEventConverter<Object, Object, MemcachedItem>, Serializable {
+public class DataCompressionEventConverter implements CacheEventConverter<Object, Object, MemcachedItem>, Serializable {
 
     private Compressor compressor;
 
-    public MetadataEventConverter(Compressor compressor) {
+    public DataCompressionEventConverter(Compressor compressor) {
         Assert.notNull(compressor, "Compressor must not be null");
         this.compressor = compressor;
     }
