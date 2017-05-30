@@ -1,9 +1,10 @@
+---
 infinispan:
   cluster:
     name: Kamehameha
     statistics.enabled: true
     jgroups.config:
-    network.address: 127.0.0.1
+    network.address:
 
   hotrod:
     # Infinispan default is 10,000
@@ -52,12 +53,38 @@ spring:
     show-sql: false
     hibernate.ddl-auto: validate
 
-logging.level.root: INFO
-logging.level.com.zalora: INFO
-logging.level.org.infinispan.topology: INFO
-logging.level.org.hibernate: INFO
-logging.level.org.springframework.orm: INFO
+
+  # Ignore warning caused by using memcached's touch command
+  org.infinispan.server.hotrod.Decoder2x: ERROR
 
 server.port: 8080
 management.security.enabled: false
 endpoints.shutdown.enabled: true
+
+logging.level.org.springframework.web.servlet.handler.SimpleUrlHandlerMapping: WARN
+logging.level.org.springframework.boot.actuate.endpoint.mvc.EndpointHandlerMapping: WARN
+logging.level.org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: WARN
+
+---
+spring:
+  profiles: dev
+
+  datasource:
+    url: jdbc:mysql://localhost/test
+    username: root
+    hikari.maximum-pool-size: 3
+
+  jpa.show-sql: true
+
+infinispan:
+  cluster.network.address: 127.0.0.1
+  cache.primary.readthrough.enabled: true
+
+server.port: 8085
+
+logging.level:
+  root: INFO
+  com.zalora: INFO
+  org.infinispan.topology: INFO
+  org.hibernate: INFO
+  org.springframework.orm: INFO
