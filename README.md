@@ -54,10 +54,12 @@ If you prefer to provide Access- and Secret Key instead, make sure to export the
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_KEY
 
+
 To configure the key and value of the tag, use the following variables:
 
 - jgroups.tag.key
 - jgroups.tag.value
+- jgroups.tag.region (optional, default: ap-southeast-1)
 
 ### Ports
 

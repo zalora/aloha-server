@@ -19,6 +19,7 @@
     <com.zalora.jgroups.aws.AWS_PING
         key="${jgroups.tag.key}"
         value="${jgroups.tag.value}"
+        region="${jgroups.tag.region:ap-southeast-1}"
     />
 
     <MERGE3 min_interval="10000"
